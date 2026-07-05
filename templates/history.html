@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Prediction History — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-history me-2"></i>Prediction History</h1>
+                <p>All previous congestion predictions with search and filter options</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success btn-export" onclick="exportCSV()">
+                    <i class="fas fa-file-csv"></i>Export CSV
+                </button>
+                <button class="btn btn-danger btn-export" onclick="exportPDF()">
+                    <i class="fas fa-file-pdf"></i>Export PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <!-- Filters -->
+    <div class="chart-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-600">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control" id="searchInput"
+                           placeholder="Search by area or road name..." oninput="filterHistory()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-600">Filter by Congestion</label>
+                <select class="form-select" id="congFilter" onchange="filterHistory()">
+                    <option value="">All Levels</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                    <i class="fas fa-times me-1"></i>Reset
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="loadHistory()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <span class="fw-600 text-navy"><i class="fas fa-table me-2"></i>Prediction Records</span>
+            <span class="badge bg-primary" id="recordCount">Loading...</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Area</th>
+                        <th>Road Name</th>
+                        <th>Day / Time</th>
+                        <th>Weather</th>
+                        <th>Vehicles</th>
+                        <th>Speed</th>
+                        <th>Congestion</th>
+                        <th>Est. Delay</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr>
+                        <td colspan="10" class="text-center py-4">
+                            <div class="spinner-border text-primary"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allRecords = [];
+
+async function loadHistory() {
+    const search = document.getElementById('searchInput').value;
+    const cong = document.getElementById('congFilter').value;
+    let url = `/api/prediction-history?search=${encodeURIComponent(search)}&congestion=${cong}`;
+
+    try {
+        const data = await apiGet(url);
+        allRecords = data.records || [];
+        renderTable(allRecords);
+    } catch (err) {
+        document.getElementById('historyBody').innerHTML =
+            '<tr><td colspan="10" class="text-center text-danger py-3">Failed to load records.</td></tr>';
+    }
+}
+
+function renderTable(records) {
+    document.getElementById('recordCount').textContent = records.length + ' records';
+    const tbody = document.getElementById('historyBody');
+
+    if (!records.length) {
+        tbody.innerHTML = `<tr><td colspan="10">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p class="fw-600">No prediction records found</p>
+                <p><a href="/predict" class="btn btn-primary mt-2"><i class="fas fa-brain me-2"></i>Make a Prediction</a></p>
+            </div>
+        </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = records.map((r, i) => `
+        <tr class="fade-in">
+            <td class="text-muted">${i + 1}</td>
+            <td><strong>${r.area}</strong></td>
+            <td>${r.road_name}</td>
+            <td><span class="badge bg-light text-dark">${r.day}</span><br><small class="text-muted">${r.time}</small></td>
+            <td>
+                <i class="fas ${weatherIcon(r.weather)} me-1"></i>${r.weather}
+            </td>
+            <td>${Number(r.vehicle_count).toLocaleString()}</td>
+            <td>${r.average_speed} km/h</td>
+            <td>${congestionBadge(r.predicted_congestion)}</td>
+            <td><small>${r.estimated_delay}</small></td>
+            <td><small class="text-muted">${fmtDate(r.created_at)}</small></td>
+        </tr>`).join('');
+}
+
+function weatherIcon(w) {
+    const map = { Clear:'fa-sun', Cloudy:'fa-cloud', Rainy:'fa-cloud-rain',
+                  Foggy:'fa-smog', Hazy:'fa-smog', Stormy:'fa-bolt' };
+    return map[w] || 'fa-cloud';
+}
+
+function filterHistory() { loadHistory(); }
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('congFilter').value = '';
+    loadHistory();
+}
+
+loadHistory();
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Power BI Dashboard — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <h1><i class="fas fa-chart-bar me-2"></i>Power BI Analytics Dashboard</h1>
+        <p>Advanced visual analytics — area-wise traffic, time trends, weather impact analysis</p>
+    </div>
+</div>
+
+
+    <!-- Embed Frame -->
+    <div class="powerbi-container mb-4">
+        <iframe title="UT_dashbroad" width="100%" height="600"
+                src="https://app.powerbi.com/reportEmbed?reportId=8e2f5a97-3d3f-4b63-92e9-4e90e76d7ab8&autoAuth=true&ctid=d0a96c74-877e-429f-8b59-2132e2b272da"
+                frameborder="0" allowFullScreen="true"></iframe>
+    </div>
+
+{% endblock %}
+

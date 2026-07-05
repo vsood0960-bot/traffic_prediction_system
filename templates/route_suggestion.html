@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Route Suggestion — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <h1><i class="fas fa-route me-2"></i>Smart Route Suggestion</h1>
+        <p>Get intelligent alternate route recommendations based on real-time congestion levels</p>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <div class="row g-4">
+        <!-- Input Form -->
+        <div class="col-lg-4">
+            <div class="form-card">
+                <h5 class="fw-700 mb-4" style="color:#0d1b4b;">
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>Route Parameters
+                </h5>
+                <form id="routeForm">
+                    <div class="mb-3">
+                        <label class="form-label">Area Name <span class="text-danger">*</span></label>
+                        <select class="form-select" id="r_area" required>
+                            <option value="">Select Area</option>
+                            <option>Connaught Place</option><option>Bandra</option>
+                            <option>Electronic City</option><option>Salt Lake</option>
+                            <option>Anna Nagar</option><option>Koramangala</option>
+                            <option>Hitech City</option><option>Dwarka</option>
+                            <option>Whitefield</option><option>Powai</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Road Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="r_road" placeholder="e.g., NH-48" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Weather Condition</label>
+                        <select class="form-select" id="r_weather">
+                            <option>Clear</option><option>Cloudy</option><option>Rainy</option>
+                            <option>Foggy</option><option>Hazy</option><option>Stormy</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Current Congestion Level <span class="text-danger">*</span></label>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="cong" id="cLow" value="Low" checked>
+                                <label class="btn btn-outline-success w-100" for="cLow">
+                                    <i class="fas fa-check-circle d-block mb-1"></i>Low
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="cong" id="cMed" value="Medium">
+                                <label class="btn btn-outline-warning w-100" for="cMed">
+                                    <i class="fas fa-minus-circle d-block mb-1"></i>Medium
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="cong" id="cHigh" value="High">
+                                <label class="btn btn-outline-danger w-100" for="cHigh">
+                                    <i class="fas fa-exclamation-triangle d-block mb-1"></i>High
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-600">
+                        <i class="fas fa-route me-2"></i>Get Route Suggestion
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="col-lg-8">
+            <!-- Placeholder -->
+            <div id="routePlaceholder" class="text-center" style="padding:80px 20px;">
+                <div style="font-size:5rem;opacity:0.1;color:#0d1b4b;"><i class="fas fa-map"></i></div>
+                <h5 class="text-muted fw-600 mt-3">Select Route Parameters</h5>
+                <p class="text-muted">Fill in the area, road name, and congestion level to receive smart route suggestions.</p>
+            </div>
+
+            <!-- Route Results -->
+            <div id="routeResult" class="d-none fade-in">
+                <!-- Summary Banner -->
+                <div class="mb-3" id="routeBanner"></div>
+
+                <!-- Route Comparison -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="route-card">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div style="width:36px;height:36px;border-radius:9px;background:rgba(239,68,68,0.1);color:#ef4444;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-600 small">Current Route</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">May face congestion</div>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-2 mb-2" style="background:#fef2f2;border:1px solid #fecaca;">
+                                <div class="fw-600 text-danger small mb-1">
+                                    <i class="fas fa-road me-1"></i>Route
+                                </div>
+                                <div id="currentRoute" class="fw-500"></div>
+                            </div>
+                            <div id="currentCongBadge"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="route-card" style="border-color:#10b981;">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.1);color:#10b981;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-600 small">Suggested Route</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">Recommended alternative</div>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-2 mb-2" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                                <div class="fw-600 text-success small mb-1">
+                                    <i class="fas fa-route me-1"></i>Alternative
+                                </div>
+                                <div id="suggestedRoute" class="fw-500"></div>
+                            </div>
+                            <span class="badge bg-success">Recommended</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reason Card -->
+                <div class="chart-card mb-3">
+                    <div class="chart-title"><i class="fas fa-lightbulb text-warning"></i>Why This Route?</div>
+                    <div class="p-3 rounded-2" style="background:#fffbeb;border:1px solid #fde68a;">
+                        <p class="mb-0 fw-500" id="routeReason"></p>
+                    </div>
+                </div>
+
+                <!-- Weather Advisory -->
+                <div id="weatherAdvisory" class="chart-card mb-3 d-none">
+                    <div class="chart-title"><i class="fas fa-cloud-rain text-primary"></i>Weather Advisory</div>
+                    <div class="p-3 rounded-2" style="background:#eff6ff;border:1px solid #bfdbfe;">
+                        <p class="mb-0" id="weatherMsg"></p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/predict" class="btn btn-primary btn-export">
+                        <i class="fas fa-brain"></i>New Prediction
+                    </a>
+                    <button class="btn btn-outline-secondary btn-export" onclick="resetRoute()">
+                        <i class="fas fa-redo"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example Scenarios -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-map-signs text-primary"></i>Route Suggestion Scenarios</div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-2" style="background:#fef2f2;border:1px solid #fecaca;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge-congestion badge-high"><i class="fas fa-exclamation-triangle"></i>High</span>
+                            </div>
+                            <p class="small mb-1 fw-600">High Congestion Detected</p>
+                            <p class="small text-muted mb-0">System suggests a completely alternate route to avoid the congested area and minimize delay.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-2" style="background:#fffbeb;border:1px solid #fde68a;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge-congestion badge-medium"><i class="fas fa-minus-circle"></i>Medium</span>
+                            </div>
+                            <p class="small mb-1 fw-600">Moderate Traffic</p>
+                            <p class="small text-muted mb-0">System suggests a partial alternate route that can save 10–15 minutes of travel time.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-2" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge-congestion badge-low"><i class="fas fa-check-circle"></i>Low</span>
+                            </div>
+                            <p class="small mb-1 fw-600">Route is Clear</p>
+                            <p class="small text-muted mb-0">No detour required. Traffic is flowing smoothly. Continue on the current route safely.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pre-fill from URL params if coming from predict page
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('area')) {
+        document.getElementById('r_area').value = params.get('area');
+    }
+    if (params.get('congestion')) {
+        const val = params.get('congestion');
+        document.querySelector(`input[name="cong"][value="${val}"]`).checked = true;
+    }
+});
+
+document.getElementById('routeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showLoading('Finding best route...');
+
+    const congestion = document.querySelector('input[name="cong"]:checked').value;
+    const area = document.getElementById('r_area').value;
+    const road = document.getElementById('r_road').value;
+    const weather = document.getElementById('r_weather').value;
+
+    try {
+        const data = await apiPost('/api/route-suggestion', {
+            congestion_level: congestion, area, road_name: road, weather
+        });
+        hideLoading();
+
+        if (data.success) {
+            showRouteResult(data.suggestion, weather);
+        } else {
+            showToast('Failed to get route suggestion.', 'error');
+        }
+    } catch (err) {
+        hideLoading();
+        showToast('Connection error.', 'error');
+    }
+});
+
+function showRouteResult(s, weather) {
+    document.getElementById('routePlaceholder').classList.add('d-none');
+    document.getElementById('routeResult').classList.remove('d-none');
+
+    // Banner
+    const bannerColors = { danger: ['#450a0a','#7f1d1d','#f87171'], warning: ['#451a03','#78350f','#fbbf24'], success: ['#052e16','#14532d','#34d399'] };
+    const bc = bannerColors[s.badge] || bannerColors.success;
+    const bannerIcons = { danger: 'fa-exclamation-triangle', warning: 'fa-exclamation-circle', success: 'fa-check-circle' };
+    document.getElementById('routeBanner').innerHTML = `
+        <div style="background:linear-gradient(135deg,${bc[0]},${bc[1]});border-radius:12px;padding:20px;color:white;">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fas ${bannerIcons[s.badge]} fa-2x" style="color:${bc[2]};"></i>
+                <div>
+                    <div class="fw-700 fs-5">${s.action}</div>
+                    <div style="color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                        Congestion: ${s.congestion_level} | ${s.current_route}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    document.getElementById('currentRoute').textContent = s.current_route;
+    document.getElementById('suggestedRoute').textContent = s.suggested_route;
+    document.getElementById('currentCongBadge').innerHTML = congestionBadge(s.congestion_level);
+    document.getElementById('routeReason').textContent = s.reason;
+
+    // Weather advisory
+    const weatherAdv = document.getElementById('weatherAdvisory');
+    if (['Rainy','Foggy','Stormy'].includes(weather)) {
+        weatherAdv.classList.remove('d-none');
+        const msgs = {
+            Rainy: '🌧️ Rainy conditions — reduce speed, maintain safe following distance, and use headlights.',
+            Foggy: '🌫️ Foggy conditions — drive slowly, use fog lights, and avoid overtaking.',
+            Stormy: '⛈️ Stormy weather — avoid travel if possible. If necessary, pull over safely during heavy rain.'
+        };
+        document.getElementById('weatherMsg').textContent = msgs[weather] || '';
+    } else {
+        weatherAdv.classList.add('d-none');
+    }
+
+    showToast('Route suggestion ready!', 'success');
+}
+
+function resetRoute() {
+    document.getElementById('routeForm').reset();
+    document.getElementById('routeResult').classList.add('d-none');
+    document.getElementById('routePlaceholder').classList.remove('d-none');
+}
+</script>
+{% endblock %}

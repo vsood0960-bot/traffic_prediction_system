@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}High Congestion Alerts — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-bell me-2"></i>High Congestion Alerts</h1>
+                <p>Real-time alerts for areas with high traffic congestion</p>
+            </div>
+            <button class="btn btn-outline-light" onclick="loadAlerts()">
+                <i class="fas fa-sync-alt me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="kpi-card red">
+                <div class="kpi-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="kpi-label">Total Alerts</div>
+                <div class="kpi-value" id="totalAlerts">—</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card amber">
+                <div class="kpi-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="kpi-label">Areas Affected</div>
+                <div class="kpi-value" id="areasAffected">—</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card blue">
+                <div class="kpi-icon" style="background:rgba(37,99,235,0.1);color:#2563eb;">
+                    <i class="fas fa-road"></i>
+                </div>
+                <div class="kpi-label">Roads Affected</div>
+                <div class="kpi-value" id="roadsAffected">—</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card green">
+                <div class="kpi-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="kpi-label">Latest Alert</div>
+                <div class="kpi-value" id="latestAlert" style="font-size:0.9rem;">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-title d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-exclamation-triangle text-danger me-2"></i>Active Congestion Alerts</span>
+                    <a href="/predict" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>New Prediction
+                    </a>
+                </div>
+
+                <div id="alertsContainer">
+                    <div class="text-center py-5 text-muted">
+                        <div class="spinner-border text-danger mb-3"></div>
+                        <p>Loading alerts...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadAlerts() {
+    try {
+        const data = await apiGet('/api/high-alerts');
+        const container = document.getElementById('alertsContainer');
+
+        if (!data.success || !data.alerts.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <p class="fw-600">No High Congestion Alerts</p>
+                    <p>Alerts are generated automatically when a HIGH congestion prediction is made.</p>
+                    <a href="/predict" class="btn btn-primary mt-2">
+                        <i class="fas fa-brain me-2"></i>Make a Prediction
+                    </a>
+                </div>`;
+            ['totalAlerts','areasAffected','roadsAffected'].forEach(id => document.getElementById(id).textContent = '0');
+            document.getElementById('latestAlert').textContent = 'N/A';
+            return;
+        }
+
+        const alerts = data.alerts;
+        const areas = [...new Set(alerts.map(a => a.area))];
+        const roads = [...new Set(alerts.map(a => a.road_name))];
+        document.getElementById('totalAlerts').textContent = alerts.length;
+        document.getElementById('areasAffected').textContent = areas.length;
+        document.getElementById('roadsAffected').textContent = roads.length;
+        document.getElementById('latestAlert').textContent = fmtDate(alerts[0].created_at);
+
+        container.innerHTML = alerts.map(a => `
+            <div class="alert-card-custom mb-3 fade-in">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="flex-shrink:0;width:48px;height:48px;background:rgba(239,68,68,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-exclamation-triangle fa-lg" style="color:#f87171;"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div class="fw-700 fs-6">⚠️ HIGH TRAFFIC ALERT</div>
+                            <small style="color:rgba(255,255,255,0.5);">${fmtDate(a.created_at)}</small>
+                        </div>
+                        <div class="mb-2" style="color:rgba(255,255,255,0.9);">
+                            <i class="fas fa-map-marker-alt me-1"></i><strong>${a.area}</strong> —
+                            <i class="fas fa-road me-1 ms-1"></i>${a.road_name}
+                        </div>
+                        <div class="p-2 rounded-2 mb-2" style="background:rgba(255,255,255,0.08);font-size:0.85rem;color:rgba(255,255,255,0.85);">
+                            ${a.alert_message}
+                        </div>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <span class="badge bg-danger">
+                                <i class="fas fa-clock me-1"></i>Delay: ${a.estimated_delay}
+                            </span>
+                            <span class="badge" style="background:rgba(255,255,255,0.2);">
+                                <i class="fas fa-traffic-light me-1"></i>${a.congestion_level}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>`).join('');
+    } catch (err) {
+        document.getElementById('alertsContainer').innerHTML =
+            '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load alerts.</p></div>';
+    }
+}
+
+loadAlerts();
+setInterval(loadAlerts, 30000); // Auto-refresh every 30s
+</script>
+{% endblock %}

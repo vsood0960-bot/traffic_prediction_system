@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% block title %}Congestion Prediction — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <h1><i class="fas fa-brain me-2"></i>Congestion Prediction</h1>
+        <p>Enter traffic parameters to predict congestion level using our ML model</p>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <div class="row g-4">
+        <!-- Form -->
+        <div class="col-lg-5">
+            <div class="form-card">
+                <h5 class="fw-700 mb-4" style="color:#0d1b4b;">
+                    <i class="fas fa-sliders-h me-2 text-primary"></i>Enter Traffic Parameters
+                </h5>
+
+                <form id="predictForm">
+                    <div class="section-divider"><span>Location</span></div>
+                    <div class="row g-3 mb-2">
+                        <div class="col-12">
+                            <label class="form-label">Area / Zone Name <span class="text-danger">*</span></label>
+                            <select class="form-select" id="area" required>
+                                <option value="">Select Area</option>
+                                <option>Connaught Place</option>
+                                <option>Bandra</option>
+                                <option>Electronic City</option>
+                                <option>Salt Lake</option>
+                                <option>Anna Nagar</option>
+                                <option>Koramangala</option>
+                                <option>Hitech City</option>
+                                <option>Dwarka</option>
+                                <option>Whitefield</option>
+                                <option>Powai</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Road Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="road_name"
+                                placeholder="e.g., Western Express Highway" required>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"><span>Time & Schedule</span></div>
+                    <div class="row g-3 mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Day <span class="text-danger">*</span></label>
+                            <select class="form-select" id="day" required>
+                                <option value="">Select Day</option>
+                                <option>Monday</option>
+                                <option>Tuesday</option>
+                                <option>Wednesday</option>
+                                <option>Thursday</option>
+                                <option>Friday</option>
+                                <option>Saturday</option>
+                                <option>Sunday</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Time <span class="text-danger">*</span></label>
+                            <select class="form-select" id="time" required>
+                                <option value="">Select Time</option>
+                                <option>06:00 AM</option>
+                                <option>07:00 AM</option>
+                                <option>08:00 AM</option>
+                                <option>09:00 AM</option>
+                                <option>10:00 AM</option>
+                                <option>11:00 AM</option>
+                                <option>12:00 PM</option>
+                                <option>01:00 PM</option>
+                                <option>02:00 PM</option>
+                                <option>03:00 PM</option>
+                                <option>04:00 PM</option>
+                                <option>05:00 PM</option>
+                                <option>06:00 PM</option>
+                                <option>07:00 PM</option>
+                                <option>08:00 PM</option>
+                                <option>09:00 PM</option>
+                                <option>10:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"><span>Conditions</span></div>
+                    <div class="row g-3 mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Weather <span class="text-danger">*</span></label>
+                            <select class="form-select" id="weather" required>
+                                <option value="">Select</option>
+                                <option>Clear</option>
+                                <option>Cloudy</option>
+                                <option>Rainy</option>
+                                <option>Foggy</option>
+                                <option>Hazy</option>
+                                <option>Stormy</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Road Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="road_type" required>
+                                <option value="">Select</option>
+                                <option>Highway</option>
+                                <option>Urban Road</option>
+                                <option>Expressway</option>
+                                <option>City Street</option>
+                                <option>Ring Road</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"><span>Traffic Data</span></div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label">Vehicle Count <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="vehicle_count" placeholder="e.g., 750" min="0"
+                                max="2000" required>
+                            <small class="text-muted">Vehicles per hour</small>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Average Speed <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="average_speed" placeholder="e.g., 35" min="0"
+                                max="150" step="0.1" required>
+                            <small class="text-muted">km/h</small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-600" id="predictBtn">
+                        <i class="fas fa-brain me-2"></i>Predict Congestion Level
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div class="col-lg-7">
+            <!-- Placeholder -->
+            <div id="resultPlaceholder" class="text-center py-5" style="margin-top:60px;">
+                <div class="mb-4" style="font-size:5rem;opacity:0.15;">
+                    <i class="fas fa-brain" style="color:#0d1b4b;"></i>
+                </div>
+                <h5 class="text-muted fw-600">Ready to Predict</h5>
+                <p class="text-muted">Fill in the traffic parameters on the left and click<br><strong>Predict Congestion
+                        Level</strong> to get results.</p>
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <span class="badge-congestion badge-low"><i class="fas fa-check-circle"></i>Low</span>
+                    <span class="badge-congestion badge-medium"><i class="fas fa-minus-circle"></i>Medium</span>
+                    <span class="badge-congestion badge-high"><i class="fas fa-exclamation-triangle"></i>High</span>
+                </div>
+            </div>
+
+            <!-- Result Card -->
+            <div id="resultCard" class="d-none fade-in">
+                <!-- Congestion Result -->
+                <div class="result-card mb-3" id="resultMain">
+                    <div class="p-4 text-white">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <div class="small text-white-50 mb-1">PREDICTED CONGESTION LEVEL</div>
+                                <div id="resultCongestionBadge"></div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-white-50">ML Confidence</div>
+                                <div class="fw-700 fs-5" id="resultConfidence">—</div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-4 text-center">
+                                <div class="p-2 rounded-2" style="background:rgba(255,255,255,0.1);">
+                                    <i class="fas fa-exclamation-circle fa-lg mb-1"></i>
+                                    <div class="small fw-600" id="resultSeverity">—</div>
+                                    <div style="font-size:0.65rem;opacity:0.7;">Severity</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-2 rounded-2" style="background:rgba(255,255,255,0.1);">
+                                    <i class="fas fa-clock fa-lg mb-1"></i>
+                                    <div class="small fw-600" id="resultDelay">—</div>
+                                    <div style="font-size:0.65rem;opacity:0.7;">Est. Delay</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-2 rounded-2" style="background:rgba(255,255,255,0.1);">
+                                    <i class="fas fa-map-marker-alt fa-lg mb-1"></i>
+                                    <div class="small fw-600" id="resultArea">—</div>
+                                    <div style="font-size:0.65rem;opacity:0.7;">Area</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safety Message -->
+                <div class="chart-card mb-3">
+                    <div class="chart-title"><i class="fas fa-shield-alt text-primary"></i>Safety Message</div>
+                    <div id="resultSafetyMsg" class="p-3 rounded-2" style="background:#f0f4ff;font-size:0.9rem;"></div>
+                </div>
+
+                <!-- Details -->
+                <div class="chart-card mb-3">
+                    <div class="chart-title"><i class="fas fa-info-circle text-primary"></i>Input Summary</div>
+                    <div class="row g-2" id="resultDetails"></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-success btn-export" onclick="getRouteSuggestion()">
+                        <i class="fas fa-route"></i>Get Route Suggestion
+                    </button>
+                    <button class="btn btn-outline-primary btn-export" onclick="resetForm()">
+                        <i class="fas fa-redo"></i>New Prediction
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div id="alertBanner" class="d-none mt-3">
+                <div class="alert-card-custom">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <i class="fas fa-exclamation-triangle fa-2x" style="color:#f87171;"></i>
+                        <div>
+                            <div class="fw-700 fs-5">⚠️ HIGH TRAFFIC ALERT</div>
+                            <div class="small" style="color:rgba(255,255,255,0.8);" id="alertText"></div>
+                        </div>
+                    </div>
+                    <div class="p-2 rounded-2 mt-2" style="background:rgba(255,255,255,0.1);font-size:0.85rem;">
+                        <strong>Suggested Action:</strong> Use an alternate route. Check the Route Suggestion page.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let lastResult = null;
+
+    document.getElementById('predictForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('predictBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Predicting...';
+        btn.disabled = true;
+        showLoading('Running ML Model...');
+
+        try {
+            const payload = {
+                area: document.getElementById('area').value,
+                road_name: document.getElementById('road_name').value,
+                day: document.getElementById('day').value,
+                time: document.getElementById('time').value,
+                weather: document.getElementById('weather').value,
+                vehicle_count: document.getElementById('vehicle_count').value,
+                average_speed: document.getElementById('average_speed').value,
+                road_type: document.getElementById('road_type').value,
+            };
+
+            const data = await apiPost('/api/predict', payload);
+            hideLoading();
+            if (data.success) {
+                const result = data.result || data;
+
+                lastResult = result;
+                showResult(result, payload);
+                showToast('Prediction complete!', 'success');
+            } else {
+                showToast(data.message || 'Prediction failed.', 'error');
+            }
+        } catch (err) {
+            hideLoading();
+            showToast('Error connecting to server.', 'error');
+        }
+
+        btn.innerHTML = '<i class="fas fa-brain me-2"></i>Predict Congestion Level';
+        btn.disabled = false;
+    });
+
+    function showResult(r, payload) {
+        document.getElementById('resultPlaceholder').classList.add('d-none');
+        const card = document.getElementById('resultCard');
+        card.classList.remove('d-none');
+
+        const main = document.getElementById('resultMain');
+        const lvl = r.congestion_level.toLowerCase();
+        main.className = `result-card mb-3 ${lvl}`;
+
+        const badgeClass = lvl === 'high' ? 'high' : lvl === 'medium' ? 'medium' : 'low';
+        const badgeIcon = lvl === 'high' ? 'fa-exclamation-triangle' : lvl === 'medium' ? 'fa-minus-circle' : 'fa-check-circle';
+        document.getElementById('resultCongestionBadge').innerHTML =
+            `<span class="congestion-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i>${r.congestion_level} Congestion</span>`;
+
+        document.getElementById('resultConfidence').textContent = r.confidence + '%';
+        document.getElementById('resultSeverity').textContent = r.severity;
+        document.getElementById('resultDelay').textContent = r.estimated_delay;
+        document.getElementById('resultArea').textContent = r.area;
+
+        document.getElementById('resultSafetyMsg').innerHTML =
+            `<i class="fas fa-info-circle me-2"></i>${r.safety_message}`;
+
+        const details = [
+            ['Area', payload.area], ['Road', payload.road_name], ['Day', payload.day],
+            ['Time', payload.time], ['Weather', payload.weather], ['Vehicles', payload.vehicle_count],
+            ['Avg Speed', payload.average_speed + ' km/h'], ['Road Type', payload.road_type]
+        ];
+        document.getElementById('resultDetails').innerHTML = details.map(([k, v]) => `
+        <div class="col-6 col-md-3">
+            <div class="p-2 rounded-2 text-center" style="background:#f8fafc;border:1px solid #e2e8f0;">
+                <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;">${k}</div>
+                <div class="fw-600 small">${v}</div>
+            </div>
+        </div>`).join('');
+
+        // Alert banner
+        const alertBanner = document.getElementById('alertBanner');
+        if (r.congestion_level === 'High') {
+            alertBanner.classList.remove('d-none');
+            document.getElementById('alertText').textContent =
+                `${r.area} — ${payload.road_name} | Delay: ${r.estimated_delay}`;
+        } else {
+            alertBanner.classList.add('d-none');
+        }
+    }
+
+    async function getRouteSuggestion() {
+        if (!lastResult) return;
+        const form = document.getElementById('predictForm');
+        const params = new URLSearchParams({
+            area: document.getElementById('area').value,
+            congestion: lastResult.congestion_level
+        });
+        window.location.href = '/route-suggestion?' + params.toString();
+    }
+
+    function resetForm() {
+        document.getElementById('predictForm').reset();
+        document.getElementById('resultCard').classList.add('d-none');
+        document.getElementById('resultPlaceholder').classList.remove('d-none');
+        document.getElementById('alertBanner').classList.add('d-none');
+        lastResult = null;
+    }
+</script>
+{% endblock %}

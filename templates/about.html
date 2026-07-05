@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}About Project — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <h1><i class="fas fa-info-circle me-2"></i>About the Project</h1>
+        <p>MCA Final Year Project — Urban Traffic Intelligence and Congestion Prediction System</p>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+
+            <!-- Problem Statement -->
+            <div class="about-section">
+                <h4><i class="fas fa-exclamation-circle text-danger"></i>Problem Statement</h4>
+                <p>Urban traffic congestion is one of the most critical challenges faced by modern cities in India and around the world. Rapid urbanization, population growth, and an increase in the number of vehicles have led to severe traffic bottlenecks, especially during peak hours. This results in:</p>
+                <ul class="ps-3" style="line-height:2;">
+                    <li>Excessive travel delays ranging from 30 minutes to over 2 hours in metro cities</li>
+                    <li>Increased fuel consumption and carbon emissions contributing to pollution</li>
+                    <li>Higher accident rates in congested areas due to driver frustration</li>
+                    <li>Economic losses estimated at thousands of crores annually due to time and fuel wastage</li>
+                    <li>Inadequate real-time traffic information for commuters to make informed route decisions</li>
+                </ul>
+                <p class="mt-2 mb-0">Existing traffic management systems rely on outdated manual methods and lack predictive capability, making it impossible to proactively manage congestion before it occurs.</p>
+            </div>
+
+            <!-- Proposed System -->
+            <div class="about-section">
+                <h4><i class="fas fa-lightbulb text-warning"></i>Proposed System</h4>
+                <p>The <strong>Urban Traffic Intelligence and Congestion Prediction System</strong> is a full-stack AI-powered web application designed to solve these challenges. The system:</p>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-2" style="background:#f0f4ff;border:1px solid #c7d2fe;">
+                            <i class="fas fa-brain text-primary me-2"></i>
+                            <strong>Predicts Congestion</strong>
+                            <p class="small text-muted mt-1 mb-0">Uses a trained Random Forest ML model to classify traffic as Low, Medium, or High based on 8 input parameters.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-2" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                            <i class="fas fa-route text-success me-2"></i>
+                            <strong>Suggests Alternate Routes</strong>
+                            <p class="small text-muted mt-1 mb-0">Intelligently recommends safer and faster alternate routes based on congestion and weather conditions.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-2" style="background:#fef2f2;border:1px solid #fecaca;">
+                            <i class="fas fa-bell text-danger me-2"></i>
+                            <strong>Generates Real-time Alerts</strong>
+                            <p class="small text-muted mt-1 mb-0">Automatically raises high congestion alerts stored in the database for immediate action.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-2" style="background:#fffbeb;border:1px solid #fde68a;">
+                            <i class="fas fa-chart-bar text-warning me-2"></i>
+                            <strong>Provides Analytics</strong>
+                            <p class="small text-muted mt-1 mb-0">Integrates Power BI dashboards and Chart.js for visual analysis of traffic patterns and trends.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objectives -->
+            <div class="about-section">
+                <h4><i class="fas fa-bullseye text-primary"></i>Objectives</h4>
+                <div class="row g-2">
+                    {% set objectives = [
+                        ('To develop a web-based traffic monitoring system for urban areas using Python Flask.', 'fa-check text-success'),
+                        ('To implement a Machine Learning model (Random Forest) for accurate congestion prediction.', 'fa-check text-success'),
+                        ('To design a role-based access system with User and Admin dashboards.', 'fa-check text-success'),
+                        ('To integrate Power BI for advanced visual traffic analytics.', 'fa-check text-success'),
+                        ('To build an intelligent route suggestion engine based on congestion and weather.', 'fa-check text-success'),
+                        ('To implement an automated high-congestion alert system with database storage.', 'fa-check text-success'),
+                        ('To provide CSV and PDF export functionality for prediction reports.', 'fa-check text-success'),
+                        ('To create a fully responsive, professional UI using Bootstrap 5 and Chart.js.', 'fa-check text-success')
+                    ] %}
+                    {% for obj, icon in objectives %}
+                    <div class="col-12">
+                        <div class="d-flex align-items-start gap-3 p-2 rounded-2" style="background:#f8fafc;">
+                            <i class="fas {{ icon }} mt-1" style="flex-shrink:0;"></i>
+                            <span class="small">{{ obj }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Benefits -->
+            <div class="about-section">
+                <h4><i class="fas fa-star text-warning"></i>Benefits of the System</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="feature-icon" style="background:rgba(16,185,129,0.1);color:#10b981;width:40px;height:40px;min-width:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="fw-600 small">Saves Travel Time</div>
+                                <div class="text-muted" style="font-size:0.82rem;">Proactive congestion alerts help commuters plan trips and avoid delays of 20–60 minutes.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="feature-icon" style="background:rgba(37,99,235,0.1);color:#2563eb;width:40px;height:40px;min-width:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <div>
+                                <div class="fw-600 small">Reduces Emissions</div>
+                                <div class="text-muted" style="font-size:0.82rem;">Reduced idle time in traffic leads to lower fuel consumption and carbon emissions.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="feature-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;width:40px;height:40px;min-width:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <div class="fw-600 small">Improves Road Safety</div>
+                                <div class="text-muted" style="font-size:0.82rem;">Safety messages and route recommendations reduce accident risks in high-congestion zones.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="feature-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;width:40px;height:40px;min-width:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <div class="fw-600 small">Data-Driven Decisions</div>
+                                <div class="text-muted" style="font-size:0.82rem;">Analytics dashboards help traffic authorities make informed urban planning decisions.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Future Scope -->
+            <div class="about-section">
+                <h4><i class="fas fa-rocket text-purple" style="color:#8b5cf6;"></i>Future Scope</h4>
+                <div class="row g-3">
+                    {% set future = [
+                        ('fa-satellite', 'text-primary', 'GPS Integration', 'Real-time GPS vehicle tracking and live map visualization using Google Maps API or OpenStreetMap.'),
+                        ('fa-mobile-alt', 'text-success', 'Mobile Application', 'Android and iOS app with push notifications for high congestion alerts sent directly to commuters.'),
+                        ('fa-camera', 'text-danger', 'CCTV Integration', 'Computer vision-based vehicle counting and congestion detection from CCTV camera feeds using OpenCV.'),
+                        ('fa-robot', 'text-warning', 'Deep Learning Model', 'Replace Random Forest with LSTM or CNN-based deep learning models for better time-series prediction.'),
+                        ('fa-city', 'text-info', 'Multi-city Support', 'Scale the system to support multiple cities with city-wise dashboards and comparative analytics.'),
+                        ('fa-traffic-light', 'text-success', 'Smart Signal Control', 'Integrate with smart traffic signal systems to automatically adjust signal timings based on predictions.')
+                    ] %}
+                    {% for icon, color, title, desc in future %}
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="fas {{ icon }} {{ color }}"></i>
+                                <strong class="small">{{ title }}</strong>
+                            </div>
+                            <p class="small text-muted mb-0">{{ desc }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Tech Stack -->
+            <div class="about-section">
+                <h4><i class="fas fa-code text-primary"></i>Technology Stack</h4>
+                <div class="mb-3">
+                    <div class="small fw-600 text-muted mb-2 text-uppercase">Frontend</div>
+                    <span class="tech-pill"><i class="fab fa-html5"></i>HTML5</span>
+                    <span class="tech-pill"><i class="fab fa-css3-alt"></i>CSS3</span>
+                    <span class="tech-pill"><i class="fab fa-js"></i>JavaScript</span>
+                    <span class="tech-pill"><i class="fab fa-bootstrap"></i>Bootstrap 5</span>
+                    <span class="tech-pill"><i class="fas fa-chart-bar"></i>Chart.js</span>
+                </div>
+                <div class="mb-3">
+                    <div class="small fw-600 text-muted mb-2 text-uppercase">Backend</div>
+                    <span class="tech-pill"><i class="fab fa-python"></i>Python 3</span>
+                    <span class="tech-pill"><i class="fas fa-flask"></i>Flask</span>
+                    <span class="tech-pill"><i class="fas fa-lock"></i>Werkzeug</span>
+                    <span class="tech-pill"><i class="fas fa-plug"></i>Flask-CORS</span>
+                </div>
+                <div class="mb-3">
+                    <div class="small fw-600 text-muted mb-2 text-uppercase">Database</div>
+                    <span class="tech-pill"><i class="fas fa-database"></i>MySQL</span>
+                    <span class="tech-pill"><i class="fas fa-connector" style="font-size:0.7rem;"></i>mysql-connector-python</span>
+                </div>
+                <div class="mb-3">
+                    <div class="small fw-600 text-muted mb-2 text-uppercase">Machine Learning</div>
+                    <span class="tech-pill"><i class="fas fa-brain"></i>scikit-learn</span>
+                    <span class="tech-pill"><i class="fas fa-calculator"></i>NumPy</span>
+                    <span class="tech-pill"><i class="fas fa-random"></i>Random Forest</span>
+                </div>
+                <div class="mb-3">
+                    <div class="small fw-600 text-muted mb-2 text-uppercase">Analytics & Export</div>
+                    <span class="tech-pill"><i class="fas fa-chart-bar"></i>Power BI</span>
+                    <span class="tech-pill"><i class="fas fa-file-pdf"></i>ReportLab</span>
+                    <span class="tech-pill"><i class="fas fa-file-csv"></i>CSV Module</span>
+                </div>
+            </div>
+
+            <!-- Project Info -->
+            <div class="about-section">
+                <h4><i class="fas fa-graduation-cap text-primary"></i>Project Details</h4>
+                <table class="table table-borderless table-sm">
+                    <tr><td class="text-muted fw-500">Course</td><td><strong>MCA</strong></td></tr>
+                    <tr><td class="text-muted fw-500">Year</td><td><strong>Final Year</strong></td></tr>
+                    <tr><td class="text-muted fw-500">Type</td><td><strong>Full Stack Web App</strong></td></tr>
+                    <tr><td class="text-muted fw-500">ML Model</td><td><strong>Random Forest</strong></td></tr>
+                    <tr><td class="text-muted fw-500">Database</td><td><strong>MySQL</strong></td></tr>
+                    <tr><td class="text-muted fw-500">Framework</td><td><strong>Python Flask</strong></td></tr>
+                    <tr><td class="text-muted fw-500">Analytics</td><td><strong>Power BI</strong></td></tr>
+                </table>
+            </div>
+
+            <!-- Database Tables -->
+            <div class="about-section">
+                <h4><i class="fas fa-database text-primary"></i>Database Schema</h4>
+                <div class="mb-2">
+                    <div class="fw-600 small mb-1"><i class="fas fa-table me-1 text-primary"></i>users</div>
+                    <div class="small text-muted ps-3">id, name, email, password, role, created_at</div>
+                </div>
+                <div class="mb-2">
+                    <div class="fw-600 small mb-1"><i class="fas fa-table me-1 text-success"></i>traffic_records</div>
+                    <div class="small text-muted ps-3">id, area, road_name, day, time, weather, vehicle_count, average_speed, road_type, congestion_level, created_at</div>
+                </div>
+                <div class="mb-2">
+                    <div class="fw-600 small mb-1"><i class="fas fa-table me-1 text-warning"></i>prediction_history</div>
+                    <div class="small text-muted ps-3">id, user_id, area, road_name, day, time, weather, vehicle_count, average_speed, road_type, predicted_congestion, estimated_delay, created_at</div>
+                </div>
+                <div class="mb-2">
+                    <div class="fw-600 small mb-1"><i class="fas fa-table me-1 text-danger"></i>alerts</div>
+                    <div class="small text-muted ps-3">id, prediction_id, area, road_name, alert_message, congestion_level, estimated_delay, created_at</div>
+                </div>
+            </div>
+
+            <!-- API Endpoints -->
+            <div class="about-section">
+                <h4><i class="fas fa-plug text-primary"></i>Backend API Endpoints</h4>
+                {% set apis = [
+                    ('POST', '/api/register', 'bg-success', 'User registration'),
+                    ('POST', '/api/login', 'bg-success', 'User authentication'),
+                    ('GET', '/api/dashboard', 'bg-primary', 'Dashboard KPIs & charts'),
+                    ('POST', '/api/predict', 'bg-success', 'ML congestion prediction'),
+                    ('POST', '/api/route-suggestion', 'bg-success', 'Route recommendation'),
+                    ('GET', '/api/high-alerts', 'bg-primary', 'Fetch all alerts'),
+                    ('GET', '/api/prediction-history', 'bg-primary', 'Prediction records'),
+                    ('DELETE', '/api/delete-record/<id>', 'bg-danger', 'Delete record (admin)'),
+                    ('GET', '/api/export-csv', 'bg-primary', 'Download CSV report'),
+                    ('GET', '/api/export-pdf', 'bg-primary', 'Download PDF report'),
+                    ('GET', '/api/admin/users', 'bg-primary', 'List all users (admin)'),
+                ] %}
+                {% for method, endpoint, color, desc in apis %}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge {{ color }}" style="min-width:52px;text-align:center;font-size:0.65rem;">{{ method }}</span>
+                    <code style="font-size:0.75rem;color:#0d1b4b;">{{ endpoint }}</code>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

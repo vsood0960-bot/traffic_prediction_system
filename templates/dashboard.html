@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Urban Traffic Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-tachometer-alt me-2"></i>Traffic Dashboard</h1>
+                <p>Welcome back, {{ session.name }} — traffic overview</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="loadDashboard()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+                <a href="/predict" class="btn btn-light btn-sm fw-600">
+                    <i class="fas fa-brain me-1"></i>New Prediction
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi-card blue">
+                <div class="kpi-icon" style="background:rgba(37,99,235,0.1);color:#2563eb;">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="kpi-label">Total Vehicles</div>
+                <div class="kpi-value" id="kpi-vehicles">—</div>
+                <div class="kpi-sub"><i class="fas fa-circle text-success" style="font-size:8px;"></i> All time records
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi-card cyan">
+                <div class="kpi-icon" style="background:rgba(6,182,212,0.1);color:#06b6d4;">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div class="kpi-label">Average Speed</div>
+                <div class="kpi-value" id="kpi-speed">—</div>
+                <div class="kpi-sub">km/h across all zones</div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi-card red">
+                <div class="kpi-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="kpi-label">High Congestion Areas</div>
+                <div class="kpi-value" id="kpi-areas">—</div>
+                <div class="kpi-sub">Zones with HIGH status</div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi-card amber">
+                <div class="kpi-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="kpi-label">Peak Traffic Hour</div>
+                <div class="kpi-value" id="kpi-peak" style="font-size:1.4rem;">—</div>
+                <div class="kpi-sub">Highest traffic period</div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi-card green">
+                <div class="kpi-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="kpi-label">Total Predictions</div>
+                <div class="kpi-value" id="kpi-preds">—</div>
+                <div class="kpi-sub">ML predictions made</div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi-card red">
+                <div class="kpi-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="kpi-label">Total Alerts</div>
+                <div class="kpi-value" id="kpi-alerts">—</div>
+                <div class="kpi-sub">High congestion alerts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-4">
+            <div class="chart-card h-100">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie text-primary"></i>
+                    Congestion Level Distribution
+                </div>
+                <div style="position:relative;height:240px;">
+                    <canvas id="congestionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="chart-card h-100">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    Vehicle Count by Area
+                </div>
+                <div style="position:relative;height:240px;">
+                    <canvas id="areaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+        <div class="col-lg-8 mx-auto">
+            <div class="chart-card h-100">
+                <div class="chart-title">
+                    <i class="fas fa-clock text-warning"></i>
+                    Peak Hour Traffic Distribution
+                </div>
+                <div style="position:relative;height:240px;">
+                    <canvas id="peakChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-bolt text-warning"></i>Quick Actions</div>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/predict" class="btn btn-primary btn-export">
+                        <i class="fas fa-brain"></i>New Prediction
+                    </a>
+                    <a href="/route-suggestion" class="btn btn-success btn-export">
+                        <i class="fas fa-route"></i>Route Suggestion
+                    </a>
+                    <a href="/alerts" class="btn btn-danger btn-export">
+                        <i class="fas fa-bell"></i>View Alerts
+                    </a>
+                    <a href="/history" class="btn btn-outline-primary btn-export">
+                        <i class="fas fa-history"></i>Prediction History
+                    </a>
+                    <button class="btn btn-outline-success btn-export" onclick="exportCSV()">
+                        <i class="fas fa-file-csv"></i>Export CSV
+                    </button>
+                    <button class="btn btn-outline-danger btn-export" onclick="exportPDF()">
+                        <i class="fas fa-file-pdf"></i>Export PDF
+                    </button>
+                    {% if session.role == 'admin' %}
+                    <a href="/admin" class="btn btn-warning btn-export">
+                        <i class="fas fa-shield-alt"></i>Admin Panel
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let charts = {};
+
+    async function loadDashboard() {
+        try {
+            const data = await apiGet('/api/dashboard');
+            if (!data.success) return;
+
+            const k = data.kpis;
+            document.getElementById('kpi-vehicles').textContent = Number(k.total_vehicles).toLocaleString();
+            document.getElementById('kpi-speed').textContent = k.avg_speed + ' km/h';
+            document.getElementById('kpi-areas').textContent = k.high_areas;
+            document.getElementById('kpi-peak').textContent = k.peak_hour;
+            document.getElementById('kpi-preds').textContent = k.total_predictions;
+            document.getElementById('kpi-alerts').textContent = k.total_alerts;
+
+            buildCharts(data.charts);
+        } catch (err) {
+            showToast('Failed to load dashboard data.', 'error');
+        }
+    }
+
+    function buildCharts(c) {
+        // Destroy existing
+        Object.values(charts).forEach(ch => ch.destroy());
+        charts = {};
+
+        // Congestion Pie
+        const congDist = c.congestion_dist || [];
+        charts.congestion = new Chart(document.getElementById('congestionChart'), {
+            type: 'doughnut',
+            data: {
+                labels: congDist.map(d => d.congestion_level),
+                datasets: [{
+                    data: congDist.map(d => d.count),
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 0, hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } } }
+            }
+        });
+
+        // Area Bar
+        const areaData = c.vehicle_by_area || [];
+        charts.area = new Chart(document.getElementById('areaChart'), {
+            type: 'bar',
+            data: {
+                labels: areaData.map(d => d.area),
+                datasets: [{
+                    label: 'Vehicle Count',
+                    data: areaData.map(d => d.total),
+                    backgroundColor: 'rgba(37,99,235,0.85)',
+                    borderRadius: 6, borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Peak Hour Bar
+        const peakData = c.peak_hour || [];
+        charts.peak = new Chart(document.getElementById('peakChart'), {
+            type: 'bar',
+            data: {
+                labels: peakData.map(d => d.time),
+                datasets: [{
+                    label: 'Records',
+                    data: peakData.map(d => d.count),
+                    backgroundColor: peakData.map((d, i) => i === 0 ? '#ef4444' : 'rgba(245,158,11,0.8)'),
+                    borderRadius: 6, borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    loadDashboard();
+</script>
+{% endblock %}
