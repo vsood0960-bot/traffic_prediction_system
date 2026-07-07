@@ -14,28 +14,102 @@ import os
 import sys
 import json
 
+
+def load_env_file(env_path=None):
+    """Load environment variables from a .env file if present."""
+    env_path = env_path or os.path.join(os.path.dirname(__file__), '.env')
+    if not os.path.exists(env_path):
+        return
+
+    with open(env_path, 'r', encoding='utf-8') as fh:
+        for raw_line in fh:
+            line = raw_line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
+def get_env_int(name,default=3306):
+    value = os.getenv(name)
+    if value is None or str(value).strip() == '':
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def get_env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def get_ssl_ca_path():
+    """Return a CA certificate path for SSL connections, writing from env if needed."""
+    for name in ('DB_SSL_CA', 'MYSQL_SSL_CA', 'SSL_CA'):
+        value = os.getenv(name)
+        if value and os.path.exists(value):
+            return value
+
+    cert_value = os.getenv('DB_SSL_CA') or os.getenv('MYSQL_SSL_CA') or os.getenv('SSL_CA') or os.getenv('SECRET_KEY') or ''
+    if cert_value and 'BEGIN CERTIFICATE' in cert_value:
+        cert_path = os.path.join(os.path.dirname(__file__), 'ca.pem')
+        # with open(cert_path, 'w', encoding='utf-8') as fh:
+        #     fh.write(cert_value)
+        return cert_path
+
+    return None
+
+
+load_env_file()
+
 # Add ml_model to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'ml_model'))
 from traffic_model import predict_congestion, get_route_suggestion
 
 app = Flask(__name__)
-app.secret_key = 'urban_traffic_secret_key_2024'
+app.secret_key = os.getenv('SECRET_KEY') or 'urban_traffic_secret_key_2024'
 CORS(app, supports_credentials=True)
 
 # ─── Database Configuration ────────────────────────────────────────────────────
+# Supports local MySQL, Aiven, Railway, and Vercel-style variables.
+host = os.getenv('DB_HOST') or os.getenv('MYSQLHOST') or os.getenv('RAILWAY_DB_HOST') or 'localhost'
+port = get_env_int('DB_PORT', get_env_int('MYSQLPORT', get_env_int('RAILWAY_DB_PORT', 3306)))
+user = os.getenv('DB_USER') or os.getenv('MYSQLUSER') or os.getenv('RAILWAY_DB_USER') or 'root'
+password = os.getenv('DB_PASSWORD') or os.getenv('MYSQLPASSWORD') or os.getenv('RAILWAY_DB_PASSWORD') or ''
+database = os.getenv('DB_NAME') or os.getenv('MYSQLDATABASE') or os.getenv('RAILWAY_DB_NAME') or 'urban_traffic_db'
+
+# ssl=os.getenv('DB_SSL_CA')
+
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'Vsood@1209',          
-    'database': 'urban_traffic_db',
+    'host': host,
+    'port': port,
+    'user': user,
+    'password': password,
+    'database': database,
     'charset': 'utf8mb4',
     'autocommit': True
 }
+
+ssl_ca_path = get_ssl_ca_path()
+if get_env_bool('AIVEN_ENABLED', False) or (host and '.aivencloud.com' in host):
+    DB_CONFIG['ssl_disabled'] = False
+    DB_CONFIG['ssl_verify_cert'] = True
+    if ssl_ca_path:
+        DB_CONFIG['ssl_ca'] = ssl_ca_path
 
 def get_db():
     """Get database connection."""
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
+    
         return conn
     except mysql.connector.Error as e:
         print(f"Database connection error: {e}")
@@ -61,6 +135,80 @@ def db_query(query, params=None, fetch=True, many=False):
         print(f"Query error: {e}")
         return None
 
+
+def init_db():
+    conn = get_db()
+    if conn is None:
+        print("Failed to connect to database.")
+        return
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(150) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role ENUM('user', 'admin') DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS traffic_records (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        area VARCHAR(100) NOT NULL,
+        road_name VARCHAR(150) NOT NULL,
+        day VARCHAR(20) NOT NULL,
+        time VARCHAR(20) NOT NULL,
+        weather VARCHAR(50) NOT NULL,
+        vehicle_count INT NOT NULL,
+        average_speed FLOAT NOT NULL,
+        road_type VARCHAR(50) NOT NULL,
+        congestion_level ENUM('Low','Medium','High') NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS prediction_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        area VARCHAR(100) NOT NULL,
+        road_name VARCHAR(150) NOT NULL,
+        day VARCHAR(20) NOT NULL,
+        time VARCHAR(20) NOT NULL,
+        weather VARCHAR(50) NOT NULL,
+        vehicle_count INT NOT NULL,
+        average_speed FLOAT NOT NULL,
+        road_type VARCHAR(50) NOT NULL,
+        predicted_congestion ENUM('Low','Medium','High') NOT NULL,
+        estimated_delay VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS alerts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        prediction_id INT,
+        area VARCHAR(100) NOT NULL,
+        road_name VARCHAR(150) NOT NULL,
+        alert_message TEXT NOT NULL,
+        congestion_level VARCHAR(20) NOT NULL,
+        estimated_delay VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    print("Database initialized successfully.")
+    
 # ─── Page Routes ───────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
@@ -133,7 +281,7 @@ def api_register():
     email = data.get('email', '').strip().lower()
     password = data.get('password', '')
     role = data.get('role', 'user')
-
+   
     if not all([name, email, password]):
         return jsonify({'success': False, 'message': 'All fields are required.'}), 400
 
@@ -144,7 +292,7 @@ def api_register():
     hashed = generate_password_hash(password)
     db_query("INSERT INTO users (name, email, password, role) VALUES (%s,%s,%s,%s)",
              (name, email, hashed, role), fetch=False)
-
+   
     return jsonify({'success': True, 'message': 'Registration successful!'})
 
 @app.route('/api/login', methods=['POST'])
@@ -152,7 +300,7 @@ def api_login():
     data = request.get_json()
     email = data.get('email', '').strip().lower()
     password = data.get('password', '')
-
+  
     user = db_query("SELECT * FROM users WHERE email=%s", (email,))
     if not user:
         return jsonify({'success': False, 'message': 'Invalid email or password.'}), 401
@@ -514,4 +662,5 @@ def api_export_pdf():
                         'message': 'PDF export requires reportlab. Run: pip install reportlab'}), 500
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True, port=5000)
